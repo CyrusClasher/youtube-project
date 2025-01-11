@@ -4,19 +4,23 @@ import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PlaylistVideoList from "@/components/[PlaylistVideoList]";
 import { fetchPlaylistItems } from "../../utils/youtube";
+import VideoList from "./VideoList";
 
 interface PlaylistPageProps {
-  params: { id: string }; // Correctly type params
-  searchParams?: { pageToken?: string };
+  params: Promise<{ id: string }>;
+  // searchParams?: { pageToken?: string };
 }
 
 export default async function PlaylistPage({
   params,
-  searchParams,
-}: PlaylistPageProps) {
+}: // searchParams,
+PlaylistPageProps) {
   try {
-    const pageToken = searchParams?.pageToken || "";
-    const playlistItemsData = await fetchPlaylistItems(params.id, pageToken);
+    const resolvedParams = await params;
+    const playlistItemsData = await fetchPlaylistItems(
+      resolvedParams.id /*pageToken*/
+    );
+    // const playlistItemsData = await fetchPlaylistItems(params.id, pageToken);
 
     if (!playlistItemsData || !playlistItemsData.items) {
       throw new Error("Invalid API response");
@@ -30,6 +34,15 @@ export default async function PlaylistPage({
       playlistItemsData.items[0]?.snippet.channelTitle || "Unknown Channel";
     const videoCount = playlistItemsData.pageInfo.totalResults || 0;
 
+    const videos = playlistItemsData.items.map((item: any) => ({
+      id: item.contentDetails.videoId,
+      title: item.snippet.title,
+      thumbnail: item.snippet.thumbnails.medium.url,
+      duration: "Unknown", // Placeholder for duration
+      views: "Unknown", // Placeholder for views
+      uploadedAt: new Date(item.snippet.publishedAt).toLocaleDateString(),
+      channelName: item.snippet.channelTitle,
+    }));
     return (
       <div className="pl-60">
         <div className="max-w-[1800px] mx-auto p-4">
@@ -81,10 +94,14 @@ export default async function PlaylistPage({
                   <TabsTrigger value="shorts">Shorts</TabsTrigger>
                 </TabsList>
                 <TabsContent value="all">
-                  <PlaylistVideoList playlistId={playlistId} />
+                  <VideoList
+                    videos={videos} /*playlistId={(await params).id}*/
+                  />
                 </TabsContent>
                 <TabsContent value="videos">
-                  <PlaylistVideoList playlistId={playlistId} />
+                  <VideoList
+                    videos={videos} /*playlistId={(await params).id}*/
+                  />
                 </TabsContent>
                 <TabsContent value="shorts">
                   <div className="text-center text-gray-400 py-8">
