@@ -6,7 +6,7 @@ import Sidebar from "../components/Sidebar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "YouTube Clone",
+  title: "YouTube Playlist Page",
   description: "A YouTube clone built with Next.js and TailwindCSS",
 };
 
